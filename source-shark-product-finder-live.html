@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Source Shark | Product Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0F2131; --ink-2:#2B3E4F; --steel:#5E6E7B; --line:#D5DCE2; --paper:#F2F5F7; --card:#FFFFFF;
+  --accent:#1B6EA8; --accent-ink:#FFFFFF; --accent-soft:#E3EEF6; --ok:#2E7D4F; --warn:#9A6200; --hero:#0F2131;
+  --h-red:#C8312B; --h-blue:#1F5FBF; --h-yellow:#E3B505; --h-green:#2F8F3A; --h-brown:#7A4B22; --h-white:#F4F4F2; --h-purple:#6E3A9E; --h-black:#1E1E1E;
+  --font:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{--ink:#E6EDF3; --ink-2:#C2CED8; --steel:#8FA1AF; --line:#2A3A48; --paper:#0E1A24; --card:#15242F;
+    --accent:#5AA9E0; --accent-ink:#06121B; --accent-soft:#16344A; --ok:#6CC08F; --warn:#E0B060; --h-black:#3a3a3a; --hero:#0A141C; color-scheme:dark;}
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.5}
+a{color:var(--accent)}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+.sr{position:absolute;left:-9999px}
+
+header.site{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.site .wrap{display:flex;align-items:center;gap:24px;height:68px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+.logo img{height:40px;width:auto;display:block}
+.logo b{font-family:var(--display);font-size:26px;font-weight:700}
+.logo b span{color:var(--accent)}
+nav.main{display:flex;gap:22px;margin-left:auto}
+nav.main a{color:var(--ink-2);text-decoration:none;font-weight:500;font-size:15px}
+nav.main a:hover{color:var(--accent)}
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:6px;padding:11px 18px;font-weight:600;cursor:pointer;text-decoration:none;font-size:15px}
+.btn-primary{background:var(--accent);color:var(--accent-ink)}
+.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn:disabled{opacity:.55;cursor:default}
+@media (max-width:860px){nav.main{display:none}.site .btn-ghost{margin-left:auto}}
+
+.finder{background:var(--hero);color:#fff;padding:52px 0 40px;position:relative}
+.finder .stripe{position:absolute;left:0;right:0;bottom:0;height:6px;display:flex}
+.finder .stripe i{flex:1}
+.finder h1{font-family:var(--display);font-weight:700;font-size:clamp(38px,6vw,68px);line-height:.98;margin:0 0 14px;max-width:14ch}
+.finder p.lead{color:#C4D1DC;max-width:58ch;margin:0 0 26px;font-size:18px}
+.ask{background:#fff;color:#0F2131;border-radius:10px;padding:14px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;max-width:900px;box-shadow:0 18px 40px -20px rgba(0,0,0,.6)}
+.ask textarea{border:0;resize:none;min-height:64px;font-size:18px;outline:none;background:transparent;color:#0F2131;width:100%}
+.ask textarea::placeholder{color:#7A8894}
+.ask .btn-primary{background:#1B6EA8;color:#fff;padding:14px 22px;font-size:16px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;max-width:900px}
+.chip{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#E6EDF3;border-radius:999px;padding:7px 14px;font-size:14px;cursor:pointer}
+.chip:hover{background:rgba(255,255,255,.16)}
+.status{margin-top:18px;font-size:14px;color:#A9BAC8;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.dot{width:9px;height:9px;border-radius:50%;background:#7A8894;display:inline-block}
+.dot.live{background:#5FD08F}.dot.load{background:#E3B505}.dot.off{background:#E07A5F}
+.status button{background:none;border:1px solid rgba(255,255,255,.25);color:#E6EDF3;border-radius:5px;padding:3px 10px;font-size:13px;cursor:pointer}
+
+main .wrap{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:32px;padding-top:32px;padding-bottom:60px}
+@media (max-width:980px){main .wrap{grid-template-columns:1fr}}
+h2{font-family:var(--display);font-weight:600;font-size:30px;margin:0 0 4px;line-height:1.1}
+h3{font-family:var(--display);font-weight:600;font-size:22px;margin:0;line-height:1.15}
+.muted{color:var(--steel)}
+
+.understood{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:18px 20px;margin-bottom:26px}
+.understood p{margin:0 0 12px}
+.needs{display:flex;flex-wrap:wrap;gap:8px}
+.need{font-size:14px;border:1px solid var(--line);border-radius:6px;padding:4px 4px 4px 10px;background:var(--paper);display:inline-flex;align-items:center;gap:4px}
+.need b{font-weight:600;color:var(--steel);margin-right:2px}
+.need button{border:0;background:none;cursor:pointer;color:var(--steel);font-size:16px;line-height:1;padding:0 6px}
+.need button:hover{color:var(--ink)}
+
+.section-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:8px 0 14px;flex-wrap:wrap}
+.results{display:grid;gap:14px}
+.prod{background:var(--card);border:1px solid var(--line);border-radius:8px;display:grid;grid-template-columns:200px minmax(0,1fr);overflow:hidden}
+.prod.top{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.prod .art{background:#fff;display:flex;align-items:center;justify-content:center;padding:14px;border-right:1px solid var(--line);position:relative;min-height:150px}
+.prod .art img{max-width:100%;max-height:150px;object-fit:contain;display:block}
+.prod .art svg{width:100%;height:auto;max-height:90px}
+.fit{position:absolute;top:10px;left:10px;font-size:12px;font-weight:600;padding:3px 8px;border-radius:4px;background:var(--accent);color:var(--accent-ink)}
+.fit.alt{background:var(--card);color:var(--ink-2);border:1px solid var(--line)}
+.prod .body{padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.why{margin:0;color:var(--ink-2)}
+.why ul{margin:4px 0 0;padding-left:18px}
+.why .x{color:var(--warn)}
+.specs{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;color:var(--steel)}
+.specs span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.25);display:inline-block}
+.row-actions{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:4px}
+.verified{font-size:13px;color:var(--ok);display:inline-flex;align-items:center;gap:5px}
+.cmp{display:inline-flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;user-select:none}
+.cmp input{width:16px;height:16px;accent-color:var(--accent)}
+.prod a.view{font-weight:600;font-size:14px;text-decoration:none}
+.prod a.view:hover{text-decoration:underline}
+@media (max-width:620px){.prod{grid-template-columns:1fr}.prod .art{border-right:0;border-bottom:1px solid var(--line)}}
+
+.refine{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}
+.refine .chip{background:var(--card);border-color:var(--line);color:var(--ink)}
+.refine .chip:hover{border-color:var(--accent)}
+.refine-box{display:flex;gap:10px;margin-top:10px}
+.refine-box input{flex:1;border:1px solid var(--line);background:var(--card);border-radius:6px;padding:11px 14px;min-width:0}
+
+.empty{background:var(--card);border:1px dashed var(--line);border-radius:8px;padding:28px}
+.empty ul{margin:10px 0 0;padding-left:20px;color:var(--ink-2)}
+.cats{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.cats button{border:1px solid var(--line);background:var(--paper);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:14px}
+.cats button:hover{border-color:var(--accent)}
+.cats button span{color:var(--steel);margin-left:6px}
+
+aside .panel{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:18px}
+aside h3{font-size:20px;margin-bottom:10px}
+.key{display:grid;gap:8px;font-size:14px}
+.key div{display:grid;grid-template-columns:18px 64px 1fr;gap:8px;align-items:center}
+.key .sw{width:16px;height:16px}
+.stat{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:6px 0;border-bottom:1px solid var(--line)}
+.stat:last-child{border-bottom:0}
+.stat b{font-weight:600;text-align:right}
+details.setup{font-size:13px;color:var(--steel);margin-top:10px}
+details.setup summary{cursor:pointer;color:var(--accent)}
+details.setup code{background:var(--paper);padding:1px 4px;border-radius:3px;word-break:break-all}
+
+.drawer{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:2px solid var(--accent);z-index:30;padding:12px 0;transform:translateY(110%);transition:transform .25s ease;box-shadow:0 -10px 30px -12px rgba(0,0,0,.35)}
+.drawer.show{transform:none}
+.drawer .wrap{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.drawer .names{flex:1;font-size:14px;color:var(--ink-2);min-width:200px}
+@media (prefers-reduced-motion:reduce){.drawer{transition:none}}
+dialog{border:0;border-radius:10px;padding:0;max-width:min(1000px,94vw);width:100%;background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(8,16,24,.6)}
+.dlg-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)}
+.tbl-wrap{overflow-x:auto;padding:4px 20px 20px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:15px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{font-family:var(--display);font-size:18px;font-weight:600}
+thead img{max-height:80px;max-width:140px;display:block;margin-bottom:6px;background:#fff}
+thead svg{width:140px;display:block}
+tbody th{color:var(--steel);font-weight:500;width:150px}
+td.diff{background:var(--accent-soft)}
+
+footer{border-top:1px solid var(--line);background:var(--card);padding:26px 0;font-size:14px;color:var(--steel)}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <a class="logo" href="https://source-shark.com/" target="_blank" rel="noopener" aria-label="Source Shark home">
+      <img src="https://source-shark.com/wp-content/uploads/2026/09/logo.png" alt="Source Shark" onerror="this.replaceWith(Object.assign(document.createElement('b'),{innerHTML:'Source<span>Shark</span>'}))">
+    </a>
+    <nav class="main" aria-label="Main">
+      <a href="https://source-shark.com/shop/" target="_blank" rel="noopener">Categories</a>
+      <a href="https://source-shark.com/shop/" target="_blank" rel="noopener">Products</a>
+      <a href="https://source-shark.com/brands/" target="_blank" rel="noopener">Brands</a>
+      <a href="https://source-shark.com/why-us/" target="_blank" rel="noopener">Why us</a>
+      <a href="https://source-shark.com/contact/" target="_blank" rel="noopener">Contact</a>
+    </nav>
+    <a class="btn btn-ghost" href="https://source-shark.com/contact/" target="_blank" rel="noopener">Request catalogue</a>
+  </div>
+</header>
+
+<section class="finder">
+  <div class="wrap">
+    <h1>Describe the job. We'll find the blade.</h1>
+    <p class="lead">Tell us what you're cutting, the size you like and the colour code you work to. The finder searches the live Source Shark catalogue and recommends the right product, with alternatives to compare.</p>
+    <form class="ask" id="askForm">
+      <label for="q" class="sr">Describe what you need</label>
+      <textarea id="q" rows="2" placeholder="e.g. We bone chicken thighs all day and need a short knife that fits our yellow colour coding"></textarea>
+      <button class="btn btn-primary" id="askBtn" type="submit">Find products</button>
+    </form>
+    <div class="chips" id="examples"></div>
+    <div class="status"><span class="dot load" id="dot"></span><span id="statusText">Loading the live catalogue from source-shark.com…</span><button type="button" id="reload" hidden>Reload catalogue</button></div>
+  </div>
+  <div class="stripe" aria-hidden="true"><i style="background:var(--h-red)"></i><i style="background:var(--h-blue)"></i><i style="background:var(--h-yellow)"></i><i style="background:var(--h-green)"></i><i style="background:var(--h-brown)"></i><i style="background:#ddd"></i><i style="background:var(--h-purple)"></i></div>
+</section>
+
+<main>
+  <div class="wrap">
+    <section id="out" aria-live="polite"></section>
+    <aside>
+      <div class="panel">
+        <h3>Catalogue</h3>
+        <div id="stats"></div>
+        <details class="setup" id="setup" hidden>
+          <summary>Why can't it reach the live site?</summary>
+          <p id="setupWhy"></p>
+          <p>Best option: upload this HTML file to the Source Shark WordPress site (for example via Media or the theme folder) and open it from there. Same-domain requests always work.</p>
+          <p>Or allow cross-site reads of the public product feed by adding this to the theme's functions.php:</p>
+          <p><code>add_filter('rest_pre_serve_request', function($v){ header('Access-Control-Allow-Origin: *'); return $v; });</code></p>
+        </details>
+      </div>
+      <div class="panel">
+        <h3>HACCP colour key</h3>
+        <div class="key" id="key"></div>
+        <p class="muted" style="font-size:13px;margin:12px 0 0">Common UK colour code. If your site uses a different scheme, name the colour you need and the finder will follow it.</p>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<div class="drawer" id="drawer" role="region" aria-label="Compare products">
+  <div class="wrap">
+    <div class="names" id="cmpNames"></div>
+    <button class="btn btn-ghost" id="cmpClear" type="button">Clear</button>
+    <button class="btn btn-primary" id="cmpOpen" type="button">Compare</button>
+  </div>
+</div>
+
+<dialog id="dlg">
+  <div class="dlg-head"><h3>Side-by-side comparison</h3><button class="btn btn-ghost" id="dlgClose" type="button">Close</button></div>
+  <div class="tbl-wrap" id="cmpTable"></div>
+</dialog>
+
+<footer>
+  <div class="wrap">
+    <div>© 2026 Source Shark. Professional tools and equipment for modern industries.</div>
+    <div><a href="https://source-shark.com/contact/" target="_blank" rel="noopener">Send an enquiry</a></div>
+  </div>
+</footer>
+
+<script>
+/* =====================================================================
+   CONFIG
+   ===================================================================== */
+const SITE = "https://source-shark.com";
+const PER_PAGE = 100;            // WooCommerce max per request
+const MAX_PAGES = 30;            // safety cap (3,000 products)
+const CACHE_KEY = "ss_finder_catalogue_v1";
+
+/* =====================================================================
+   REFERENCE DATA
+   ===================================================================== */
+const HACCP = {
+  Red:{use:"Raw meat",c:"var(--h-red)"}, Blue:{use:"Raw fish",c:"var(--h-blue)"},
+  Yellow:{use:"Cooked meat and poultry",c:"var(--h-yellow)"}, Green:{use:"Salad and fruit",c:"var(--h-green)"},
+  Brown:{use:"Vegetables",c:"var(--h-brown)"}, White:{use:"Bakery and dairy",c:"var(--h-white)"},
+  Purple:{use:"Allergen-free",c:"var(--h-purple)"}, Black:{use:"General use, not colour-coded",c:"var(--h-black)"}
+};
+const BRANDS = ["Arcos","Eicker Messer","Eicker","Fischer Bargoin","Ibili","Ivo","Mundial","Zahnd","E1"];
+
+/* Offline snapshot, used only if the live site can't be reached. Taken from source-shark.com listings. */
+const SNAP_CAT = {K:"Knives",B:"Butchers",M:"Meat",C:"Chefs & Cooks",F:"Fish & Seafood",P:"Poultry",V:"Vegetables",BP:"Bakery & Pastry",S:"Scissors",SH:"Sharpener",BE:"Beauty"};
+const SNAPSHOT = [
+["10-aerial-trim-knife-black-antibac-handle",'10" Aerial Trim Knife Black AntiBac Handle',"K,B"],
+["10-aerial-trim-knife-blue-handle",'10" Aerial Trim Knife Blue Handle',"K,B"],
+["10-aerial-trim-knife-white-handle",'10" Aerial Trim Knife White Handle',"K,B"],
+["10-aerial-trim-knife-yellow-handle",'10" Aerial Trim Knife Yellow Handle',"K,B"],
+["10-aerial-trim-cimeter-knife-black-antibac-handle",'10" Aerial Trim/Cimeter Knife Black AntiBac Handle',"K,B"],
+["10-butchers-knife-white-handle",'10" Butchers Knife White Handle',"K,B"],
+["10-butchers-knife-black-antibac-handle",'10" Butchers Knife Black AntiBac Handle',"K,B"],
+["10-butchers-knife-blue-handle",'10" Butchers Knife Blue Handle',"K,B,M","E1-504-26BL","Eicker Messer (E1)","Wide blade"],
+["10-butchers-knife-wide-blade",'10" Butchers Knife Wide Blade',"K,B"],
+["10-butchers-knife-yellow-handle-2",'10" Butchers Knife Yellow Handle',"K,B"],
+["10-cooks-knife-white-handle",'10" Cooks Knife White Handle',"K,B"],
+["10-breaking-knife",'10" Eicker Breaking Knife',"K,B,M"],
+["10-breaking-knife-blue-handle",'10" Eicker Breaking Knife Blue Handle',"K,B,M"],
+["10-breaking-knife-yellow-handle",'10" Eicker Breaking Knife Yellow Handle',"K,B,M"],
+["10-butchers-knife-black-handle",'10" Eicker Butchers Knife Black Handle',"K,B,M"],
+["10-butchers-knife-safety-black-handle",'10" Eicker Butchers Knife Safety Black Handle',"K,B,M"],
+["10-butchers-knife-yellow-handle-3",'10" Eicker Butchers Knife Yellow Handle',"K,B,M"],
+["7-25-sticking-knife-yellow-handle",'7.25" Sticking Knife Yellow Handle',"K,B,M"],
+["8-sticking-knife-blue-handle",'8" Sticking Knife Blue Handle',"K,B,M"],
+["12-breaking-knife-blue-handle",'12" Breaking Knife Blue Handle',"K,B,M"],
+["6-boning-knife-yellow-handle-2",'6" Boning Knife Yellow Handle',"K,B,M"],
+["6-boning-knife-blue-handle",'6" Boning Knife Blue Handle',"K,B,M"],
+["8-curved-broad-knife",'8" Curved Broad Knife',"K,B,M"],
+["butchers-knives",'Butchers Knives (200mm, high-carbon stainless)',"K,B","REF-200"],
+["cooks-knives",'Cooks Knives (250mm, hardened forged steel)',"K,C","SC-250"],
+["steak-knives",'Steak Knives (food-grade 304 stainless)',"K,C","FI-340"],
+["10-cushion-pro-scissors",'10" Mundial Cushion Pro Scissors',"S"],
+["12-cushion-pro-scissors",'12" Mundial Cushion Pro Scissors',"S"],
+["8-cushion-pro-scissors",'8" Mundial Cushion Pro Scissors',"S"],
+["10-mundial-red-dot-office-scissors",'10" Mundial Red Dot Office Scissors',"S"],
+["4-25-mundial-red-dot-office-scissors",'4.25" Mundial Red Dot Office Scissors',"S"],
+["5-5-mundial-red-dot-office-scissors",'5.5" Mundial Red Dot Office Scissors',"S"],
+["7-5-mundial-red-dot-office-scissors",'7.5" Mundial Red Dot Office Scissors',"S"],
+["8-5-mundial-red-dot-office-scissors",'8.5" Mundial Red Dot Office Scissors',"S"],
+["8-5-mundial-red-dot-office-scissors-left-hand",'8.5" Mundial Red Dot Office Scissors, Left Hand',"S"],
+["8-5-mundial-red-dot-office-pattern-scissors",'8.5" Mundial Red Dot Office Pattern Scissors',"S"],
+["5-5-multi-purpose-scissors",'5.5" Mundial Multi Purpose Scissors',"S"],
+["8-5-multi-purpose-scissors",'8.5" Mundial Multi Purpose Scissors',"S"],
+["5-5-paper-office-scissors",'5.5" Mundial Paper/Office Scissors',"S"],
+["8-5-paper-office-scissors",'8.5" Mundial Paper/Office Scissors',"S"],
+["6-5-office-scissors",'6.5" Office Scissors',"S"],
+["7-office-scissors",'7" Mundial Office Scissors',"S"],
+["7-5-office-scissors",'7.5" Mundial Office Scissors',"S"],
+["8-5-office-scissors",'8.5" Mundial Office Scissors',"S"],
+["8-blue-poultry-scissors",'8" Mundial Blue Poultry Scissors',"S,F,P"],
+["8-green-poultry-scissors",'8" Mundial Green Poultry Scissors',"S,F,P"],
+["8-white-poultry-scissors-2",'8" Mundial White Poultry Scissors',"S,F,P"],
+["10-serrated-steel-carbon-black-handle",'10" Serrated Steel Carbon Black Handle',"SH"],
+["10-serrated-steel-carbon-white-handle",'10" Serrated Steel Carbon White Handle',"SH"],
+["10-smooth-steel-carbon-black-handle",'10" Smooth Steel Carbon Black Handle',"SH"],
+["10-smooth-steel-carbon-white-handle",'10" Smooth Steel Carbon White Handle',"SH"],
+["12-serrated-steel-carbon-black-handle",'12" Serrated Steel Carbon Black Handle',"SH"],
+["12-serrated-steel-carbon-white-handle",'12" Serrated Steel Carbon White Handle',"SH"],
+["12-serrated-steel-inox-white-handle",'12" Serrated Steel Inox White Handle',"SH"],
+["12-smooth-steel-carbon-black-handle",'12" Smooth Steel Carbon Black Handle',"SH"],
+["12-smooth-steel-carbon-white-handle",'12" Smooth Steel Carbon White Handle',"SH"],
+["12-smooth-steel-carbon-yellow-handle",'12" Smooth Steel Carbon Yellow Handle',"SH"],
+["14-serrated-steel-carbon-black-handle",'14" Serrated Steel Carbon Black Handle',"SH"],
+["14-serrated-steel-carbon-white-handle",'14" Serrated Steel Carbon White Handle',"SH"],
+["10-mundial-masterline-sharpener",'10" Mundial Masterline Sharpener',"C,SH"],
+["10-250mm-chefs-knife-wide-blue",'10"/250mm Chef´s Knife Wide Blue',"K,C,F"],
+["12-300mm-chefs-knife-wide-blue",'12"/300mm Chef´s Knife Wide Blue',"K,C,F"],
+["130mm-arcos-knife-blue-handle",'130mm Arcos Knife Blue Handle',"K,C,F"],
+["150mm-arcos-knife-blue-handle",'150mm Arcos Knife Blue Handle',"K,C,F"],
+["no-title",'3"/80mm Arcos Paring Knife Blue Handle',"K,F"],
+["6-deboning-knife-white-handle-5",'6" Deboning Knife White Handle',"K,C,F"],
+["7-trimming-knife-yellow-handle-2",'7" Trimming Knife Yellow Handle',"K,F"],
+["10-cooks-knife-black-handle",'10" Cooks Knife Black Handle',"K,C"],
+["10-mundial-elegance-forged-sashimi-knife",'10" Mundial Elegance Forged Sashimi Knife',"K,C"],
+["10-mundial-masterline-knife",'10" Mundial Masterline Knife',"K,C"],
+["10-250mm-arcos-chefs-knife-wide-red",'10"/250mm Arcos Chef´s Knife Wide Red',"K,C"],
+["10-250mm-arcos-chefs-knife-wide-yellow",'10"/250mm Arcos Chef´s Knife Wide Yellow',"K,C,P"],
+["10-250mm-chefs-knife-wide-black",'10"/250mm Chef´s Knife Wide Black',"K,C"],
+["10-250mm-chefs-knife-wide-brown",'10"/250mm Chef´s Knife Wide Brown',"K,C"],
+["10-250mm-chefs-knife-wide-green",'10"/250mm Chef´s Knife Wide Green',"K,C,V"],
+["10-250mm-chefs-knife-wide-white",'10"/250mm Chef´s Knife Wide White',"K,C,BP"],
+["12-cooks-knife-black-handle",'12" Cooks Knife Black Handle',"K,C"],
+["12-300mm-arcos-chefs-knife-wide-yellow",'12"/300mm Arcos Chef´s Knife Wide Yellow',"K,C,P"],
+["12-300mm-chefs-knife-wide-green",'12"/300mm Chef´s Knife Wide Green',"K,C,V"],
+["12-300mm-chefs-knife-wide-red",'12"/300mm Chef´s Knife Wide Red',"K,C"],
+["130mm-arcos-knife-black-handle",'130mm Arcos Knife Black Handle',"K,C"],
+["130mm-arcos-knife-green-handle",'130mm Arcos Knife Green Handle',"K,C"],
+["no-title-2",'130mm Arcos Knife Purple Handle',"K,C"],
+["130mm-arcos-knife-red-handle",'130mm Arcos Knife Red Handle',"K,C"],
+["130mm-arcos-knife-yellow-handle",'130mm Arcos Knife Yellow Handle',"K,C,P"],
+["150mm-arcos-knife-black-handle",'150mm Arcos Knife Black Handle',"K,C"],
+["150mm-arcos-knife-yellow-handle",'150mm Arcos Knife Yellow Handle',"K,P"],
+["150mm-arcos-knife-green-handle",'150mm Arcos Knife Green Handle',"K,V"],
+["200mm-arcos-knife-yellow-handle",'200mm Arcos Knife Yellow Handle',"K,P"],
+["8-200mm-arcos-chefs-knife-wide-yellow",'8"/200mm Arcos Chef´s Knife Wide Yellow',"K,C,P"],
+["4-100mm-arcos-vegetable-knife-blue-handle",'4"/100mm Arcos Vegetable Knife Blue Handle',"K,C"],
+["4-100mm-arcos-vegatable-knife-green-handle",'4"/100mm Arcos Vegetable Knife Green Handle',"K,C"],
+["4-100mm-arcos-vegatable-knife-yellow-handle",'4"/100mm Arcos Vegetable Knife Yellow Handle',"K,C"],
+["6-mundial-chef-kitchen-boning-knife",'6" Mundial Chef Kitchen Boning Knife',"K,C"],
+["6-mundial-elegance-forged-knife",'6" Mundial Elegance Forged Knife',"K,C"],
+["6-mundial-masterline-kitchen-knife-2",'6" Mundial Masterline Kitchen Knife',"K,C"],
+["7-cooks-knife-black-handle",'7" Cooks Knife Black Handle',"K,C"],
+["7-mundial-chef-kitchen-santoku-forged-knife",'7" Mundial Chef Kitchen Santoku Forged Knife',"K,C"],
+["7-mundial-chef-kitchen-santoku-forged-knife-2",'7" Mundial Chef Kitchen Santoku Forged Knife, Granton Edge',"K,C"],
+["7-mundial-masterline-cleaver",'7" Mundial Masterline Cleaver',"K,C"],
+["7-mundial-masterline-kitchen-knife",'7" Mundial Masterline Kitchen Knife',"K,C"],
+["7-180mm-santoku-knife-black-granton-edge",'7"/180mm Santoku Knife Black (Granton Edge)',"K,V"],
+["8-mundial-masterline-bread-knife",'8" Mundial Masterline Bread Knife',"K,BP"],
+["4-5-poultry-processing-knife-yellow-handle",'4.5" Eicker Poultry Processing Knife Yellow Handle',"K,P"],
+["5-5-boning-knife-yellow-handle",'5.5" Eicker Boning Knife Yellow Handle',"K,P"],
+["5-boning-knife-yellow-handle-15",'5" Eicker Boning Knife Yellow Handle',"K,P"],
+["6-boning-knife-yellow-handle-12",'6" Eicker Boning Knife Yellow Handle',"K,P"],
+["6-sticking-knife-yellow-handle-2",'6" Eicker Sticking Knife Yellow Handle',"K,P"],
+["7-boning-knife-yellow-handle-2",'7" Eicker Boning Knife Yellow Handle',"K,P"],
+["7-sticking-knife-yellow-handle-3",'7" Eicker Sticking Knife Yellow Handle',"K,P"],
+["8-trimming-knife-yellow-handle",'8" Trimming Knife Yellow Handle',"K,BE"],
+["beauty-implements",'Beauty Implements',"BE"]
+];
+
+/* =====================================================================
+   LIVE CATALOGUE LOADING
+   Strategy 1: WooCommerce Store API (public, no key)
+   Strategy 2: WordPress REST products endpoint
+   Fallback: cached copy from last successful load, then built-in snapshot
+   ===================================================================== */
+const stripHtml = s => { const d=document.createElement('div'); d.innerHTML=s||''; return (d.textContent||'').replace(/\s+/g,' ').trim(); };
+const decode = s => { const t=document.createElement('textarea'); t.innerHTML=s||''; return t.value; };
+
+async function getJSON(url){
+  const r = await fetch(url, {headers:{Accept:"application/json"}});
+  if(!r.ok) throw new Error("HTTP "+r.status+" from "+url.replace(SITE,''));
+  return {data: await r.json(), headers:r.headers};
+}
+
+async function loadStoreApi(onProgress){
+  const out=[];
+  for(let page=1; page<=MAX_PAGES; page++){
+    const {data,headers} = await getJSON(`${SITE}/wp-json/wc/store/v1/products?per_page=${PER_PAGE}&page=${page}`);
+    if(!Array.isArray(data)) throw new Error("Unexpected Store API response");
+    data.forEach(p=>out.push({
+      id:"W"+p.id, name:decode(p.name), slug:p.slug, url:p.permalink, sku:p.sku||"",
+      desc:stripHtml((p.short_description||'')+' '+(p.description||'')),
+      cats:(p.categories||[]).map(c=>decode(c.name)),
+      image:(p.images&&p.images[0])?(p.images[0].src||p.images[0].thumbnail):"",
+      brand:((p.brands||[]).map(b=>decode(b.name))[0])||"",
+      attrs:(p.attributes||[]).map(a=>({name:a.name,values:(a.terms||[]).map(t=>decode(t.name))}))
+    }));
+    const total = parseInt(headers.get("X-WP-TotalPages")||"0",10);
+    onProgress(out.length);
+    if(data.length<PER_PAGE || (total && page>=total)) break;
+  }
+  return out;
+}
+
+async function loadWpRest(onProgress){
+  let catNames={};
+  try{
+    for(let page=1;page<=5;page++){
+      const {data}=await getJSON(`${SITE}/wp-json/wp/v2/product_cat?per_page=100&page=${page}`);
+      data.forEach(c=>catNames[c.id]=decode(c.name)); if(data.length<100) break;
+    }
+  }catch(e){}
+  const out=[];
+  for(let page=1; page<=MAX_PAGES; page++){
+    const {data}=await getJSON(`${SITE}/wp-json/wp/v2/product?per_page=${PER_PAGE}&page=${page}&_embed=wp:featuredmedia`);
+    data.forEach(p=>{
+      const media=p._embedded&&p._embedded["wp:featuredmedia"]&&p._embedded["wp:featuredmedia"][0];
+      out.push({id:"W"+p.id,name:decode(p.title&&p.title.rendered),slug:p.slug,url:p.link,sku:"",
+        desc:stripHtml((p.excerpt&&p.excerpt.rendered)+' '+(p.content&&p.content.rendered)),
+        cats:(p.product_cat||[]).map(id=>catNames[id]).filter(Boolean),
+        image:media?(media.source_url||""):"",brand:"",attrs:[]});
+    });
+    onProgress(out.length);
+    if(data.length<PER_PAGE) break;
+  }
+  return out;
+}
+
+function snapshotProducts(){
+  return SNAPSHOT.map(([slug,name,cats,sku,brand,desc])=>({id:"S-"+slug,name,slug,url:`${SITE}/product/${slug}/`,sku:sku||"",desc:desc||"",
+    cats:cats.split(",").map(c=>SNAP_CAT[c]),image:"",brand:brand||"",attrs:[]}));
+}
+
+/* =====================================================================
+   ENRICHMENT: derive type, size, colour, brand, features from live data
+   ===================================================================== */
+function deriveType(n){
+  const s=n.toLowerCase();
+  if(/scissor|shear/.test(s)) return /poultry/.test(s)?"Poultry scissors":/cushion/.test(s)?"Heavy-duty scissors":/multi/.test(s)?"Multi-purpose scissors":/office|paper/.test(s)?"Office scissors":"Scissors";
+  if(/\bsteel\b|sharpen|whetstone|honing/.test(s)) return "Sharpening steel";
+  if(/beauty|implement|nail|tweezer|cuticle/.test(s)) return "Beauty implements";
+  if(/podiat/.test(s)) return "Podiatry tools";
+  if(/aerial|cimeter|scimitar/.test(s)) return "Cimeter / trim knife";
+  if(/breaking/.test(s)) return "Breaking knife";
+  if(/sticking/.test(s)) return "Sticking knife";
+  if(/fillet/.test(s)) return "Filleting knife";
+  if(/boning|deboning/.test(s)) return "Boning knife";
+  if(/trimming/.test(s)) return "Trimming knife";
+  if(/poultry/.test(s)&&/knife/.test(s)) return "Poultry processing knife";
+  if(/broad/.test(s)) return "Broad knife";
+  if(/butcher/.test(s)) return "Butchers knife";
+  if(/sashimi|yanagi/.test(s)) return "Sashimi knife";
+  if(/santoku/.test(s)) return "Santoku knife";
+  if(/cleaver|chopper/.test(s)) return "Cleaver";
+  if(/bread/.test(s)) return "Bread knife";
+  if(/cheese/.test(s)) return "Cheese knife";
+  if(/paring/.test(s)) return "Paring knife";
+  if(/vegetable|veg\b/.test(s)) return "Vegetable knife";
+  if(/steak/.test(s)) return "Steak knife";
+  if(/slic/.test(s)) return "Slicing knife";
+  if(/chef|cook/.test(s)) return "Chef's / cook's knife";
+  if(/knife|knives/.test(s)) return "Utility knife";
+  return "Other";
+}
+function enrich(p){
+  const text = p.name+' '+p.desc;
+  // colour: HACCP attribute first, else name
+  let colour=null;
+  const ca=p.attrs.find(a=>/haccp|colou?r|handle/i.test(a.name));
+  if(ca&&ca.values.length){ const v=ca.values[0]; const m=v.match(/Black|Blue|White|Yellow|Green|Red|Brown|Purple/i); if(m) colour=m[0][0].toUpperCase()+m[0].slice(1).toLowerCase(); }
+  if(!colour){ const cm=p.name.replace(/red dot/ig,'').match(/\b(Black|Blue|White|Yellow|Green|Red|Brown|Purple)\b/i); if(cm) colour=cm[1][0].toUpperCase()+cm[1].slice(1).toLowerCase(); }
+  // size
+  let inches=null; const im=p.name.match(/(\d+(?:\.\d+)?)\s*(?:"|″|”|in\b|inch)/i); const mm=text.match(/(\d{2,3})\s*mm/i);
+  if(im) inches=parseFloat(im[1]); else if(mm) inches=Math.round(parseInt(mm[1])/25.4*10)/10;
+  // brand
+  let brand=p.brand;
+  const ba=p.attrs.find(a=>/brand|manufacturer/i.test(a.name)); if(!brand&&ba&&ba.values[0]) brand=ba.values[0];
+  if(!brand){ const b=BRANDS.find(b=>new RegExp('\\b'+b+'\\b','i').test(p.name)); if(b) brand=b==="Eicker"||b==="E1"?"Eicker Messer":b; }
+  // features
+  const F=[[/antibac|anti-bac|antimicrob/i,"Anti-bacterial handle"],[/safety/i,"Safety handle"],[/wide/i,"Wide blade"],[/narrow/i,"Narrow blade"],
+    [/granton|hollow edge/i,"Granton edge"],[/forged/i,"Forged"],[/left[- ]hand/i,"Left-handed"],[/serrated/i,"Serrated"],[/smooth/i,"Smooth"],
+    [/flexible|flex\b/i,"Flexible"],[/stiff|rigid/i,"Stiff"],[/curved/i,"Curved"],[/carbon/i,"Carbon steel"],[/inox|stainless|304/i,"Stainless (inox)"],
+    [/masterline/i,"Masterline range"],[/elegance/i,"Elegance range"],[/cushion/i,"Cushioned grip"],[/dishwasher/i,"Dishwasher safe"]];
+  const features=F.filter(([r])=>r.test(text)).map(f=>f[1]);
+  return {...p,type:deriveType(p.name+' '+(p.cats.includes("Sharpener")?"sharpener":"")),inches,colour,brand,features,
+    hay:(p.name+' '+p.cats.join(' ')+' '+p.desc+' '+p.sku+' '+(brand||'')).toLowerCase(),
+    placeholder:!p.image||/placeholder/i.test(p.image)};
+}
+
+/* =====================================================================
+   STATE + LOADING
+   ===================================================================== */
+let DB=[], BYID={}, SOURCE="", LOADED_AT=null;
+const dot=document.getElementById('dot'), statusText=document.getElementById('statusText'), reloadBtn=document.getElementById('reload');
+
+function setCatalogue(list, source, when){
+  const seen=new Set(); DB=[];
+  list.forEach(p=>{ const k=(p.name+'|'+(p.sku||'')).toLowerCase(); if(!p.name||seen.has(k)) return; seen.add(k); DB.push(enrich(p)); });
+  BYID=Object.fromEntries(DB.map(p=>[p.id,p])); SOURCE=source; LOADED_AT=when;
+  renderStats(); if(!state.history.length) renderWelcome(); else runIntent();
+}
+function fmtTime(d){ return d.toLocaleString([], {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}); }
+
+async function loadCatalogue(){
+  reloadBtn.hidden=true; dot.className='dot load';
+  statusText.textContent='Loading the live catalogue from source-shark.com…';
+  const progress=n=>statusText.textContent=`Loading the live catalogue from source-shark.com… ${n} products so far`;
+  const errors=[];
+  for(const [label,fn] of [["Store API",loadStoreApi],["WordPress REST",loadWpRest]]){
+    try{
+      const list=await fn(progress);
+      if(list.length){
+        const now=new Date();
+        setCatalogue(list,"live",now);
+        try{ localStorage.setItem(CACHE_KEY, JSON.stringify({ts:now.getTime(),products:list})); }catch(e){}
+        dot.className='dot live';
+        statusText.textContent=`Live: ${DB.length} products loaded from source-shark.com at ${fmtTime(now)}`;
+        reloadBtn.hidden=false; document.getElementById('setup').hidden=true; return;
+      }
+      errors.push(label+": no products returned");
+    }catch(e){ errors.push(label+": "+(e.message||"blocked")); }
+  }
+  // fallbacks
+  let cached=null; try{ cached=JSON.parse(localStorage.getItem(CACHE_KEY)||"null"); }catch(e){}
+  dot.className='dot off'; reloadBtn.hidden=false;
+  const why = errors.join('. ')+'. Browsers block reading another website unless that site allows it, which is the usual cause when this file is opened from your computer.';
+  document.getElementById('setupWhy').textContent=why; document.getElementById('setup').hidden=false;
+  if(cached&&cached.products&&cached.products.length){
+    const when=new Date(cached.ts); setCatalogue(cached.products,"cache",when);
+    statusText.textContent=`Live site unreachable. Using the copy saved ${fmtTime(when)} (${DB.length} products).`;
+  } else {
+    setCatalogue(snapshotProducts(),"snapshot",null);
+    statusText.textContent=`Live site unreachable. Using the built-in sample of ${DB.length} products.`;
+  }
+}
+reloadBtn.onclick=loadCatalogue;
+
+/* =====================================================================
+   NATURAL-LANGUAGE UNDERSTANDING (runs entirely in the browser)
+   ===================================================================== */
+const QUERY_TYPES=[
+  [/\bpoultry scissor|chicken scissor|scissors? for (chicken|poultry)|poultry shear/,["Poultry scissors"]],
+  [/left[- ]?hand.*scissor|scissor.*left[- ]?hand/,["Office scissors","Scissors"]],
+  [/heavy[- ]duty scissor|cushion/,["Heavy-duty scissors"]],
+  [/scissor|shear|cut(ting)? paper|office/,["Office scissors","Multi-purpose scissors","Heavy-duty scissors","Scissors"]],
+  [/sharpen|steel|hon(e|ing)|keep .* sharp|blunt|edge maint/,["Sharpening steel"]],
+  [/fillet/,["Filleting knife","Boning knife"]],
+  [/\b(bon(e|es|ing)|debon(e|ing))\b/,["Boning knife"]],
+  [/carcass|break(ing)? (down|up)|\bbreaking\b|primal|sides of/,["Breaking knife","Cimeter / trim knife","Butchers knife"]],
+  [/sticking|slaughter|bleed|abattoir/,["Sticking knife"]],
+  [/\btrim|\bfat\b|sinew|silverskin/,["Trimming knife","Cimeter / trim knife","Boning knife"]],
+  [/cleav|chop(ping)? (through )?bone|chop/,["Cleaver"]],
+  [/sushi|sashimi/,["Sashimi knife"]],
+  [/santoku/,["Santoku knife"]],
+  [/bread|loaf|sourdough|baguette|crust/,["Bread knife"]],
+  [/cake|pastry|bakery/,["Bread knife","Chef's / cook's knife"]],
+  [/cheese/,["Cheese knife","Chef's / cook's knife"]],
+  [/steak/,["Steak knife"]],
+  [/paring|peel/,["Paring knife","Vegetable knife"]],
+  [/\bveg|salad|herb|fruit|onion|tomato/,["Vegetable knife","Santoku knife","Chef's / cook's knife","Paring knife"]],
+  [/slic/,["Slicing knife","Chef's / cook's knife","Sashimi knife"]],
+  [/poultry|chicken|turkey|duck|thigh|wing/,["Boning knife","Poultry processing knife"]],
+  [/\b(fish|salmon|seafood|cod|haddock|prawns?)\b/,["Filleting knife","Boning knife","Chef's / cook's knife","Utility knife"]],
+  [/chef|cook|kitchen|all[- ]?round|general prep|prep/,["Chef's / cook's knife","Santoku knife","Utility knife"]],
+  [/butcher|meat|beef|pork|lamb|mutton/,["Butchers knife","Boning knife","Breaking knife"]],
+  [/beauty|salon|nail|cuticle/,["Beauty implements"]],
+  [/podiat|chiropod|foot care/,["Podiatry tools"]],
+  [/\bknife|\bknives/,["Utility knife","Chef's / cook's knife"]]
+];
+const FOOD_COLOUR=[[/\b(fish|seafood|salmon|cod|haddock|prawns?)\b/,"Blue","raw fish"],[/raw meat|raw beef|raw pork|raw lamb/,"Red","raw meat"],
+  [/beef|pork|lamb|mutton/,"Red","raw meat"],[/cooked/,"Yellow","cooked meat"],[/chicken|poultry|turkey|duck/,"Yellow","poultry"],
+  [/salad|fruit/,"Green","salad and fruit"],[/\bveg/,"Brown","vegetables"],[/bread|bakery|dairy|cheese|pastry/,"White","bakery and dairy"],[/allergen|gluten|nut[- ]free/,"Purple","allergen-free food"]];
+const FEATURE_Q=[[/antibac|anti-bac|hygien|antimicrob/,"Anti-bacterial handle"],[/safety|non[- ]?slip|guard/,"Safety handle"],[/left[- ]?hand/,"Left-handed"],
+  [/\b(forged|premium)\b/,"Forged"],[/granton|stop.*stick|non[- ]?stick|dimple/,"Granton edge"],[/\bwide\b/,"Wide blade"],[/\b(narrow|thin)\b/,"Narrow blade"],
+  [/serrat/,"Serrated"],[/smooth/,"Smooth"],[/flexib|flexi|bendy/,"Flexible"],[/stiff|rigid/,"Stiff"],[/curved/,"Curved"],
+  [/stainless|\binox\b|\brust/,"Stainless (inox)"],[/carbon/,"Carbon steel"],[/comfort|cushion|grip/,"Cushioned grip"]];
+const STOP=new Set("need needs want wants with that this have looking something some them they their there what which from into your ours ours about would could should really very good best work works working all day days long short small large every using used use the and for our who are able".split(' '));
+
+function parseQuery(text){
+  const s=' '+text.toLowerCase()+' ';
+  const it={};
+  for(const [r,t] of QUERY_TYPES){ if(r.test(s)){ it.types=t; it.typeLabel=t[0]; break; } }
+  // collect secondary type hints from other matches (food + task)
+  const extra=new Set(); QUERY_TYPES.forEach(([r,t])=>{ if(r.test(s)) t.forEach(x=>extra.add(x)); });
+  if(it.types){ it.related=[...extra].filter(x=>!it.types.includes(x)); }
+  const cm=s.match(/\b(red|blue|yellow|green|brown|white|purple|black)\b/);
+  if(cm && !/red dot/.test(s)){ it.colour=cm[1][0].toUpperCase()+cm[1].slice(1); it.colourWhy="you asked for "+cm[1]; }
+  else { for(const [r,c,f] of FOOD_COLOUR){ if(r.test(s)){ it.colour=c; it.colourWhy="HACCP colour for "+f; it.food=f; break; } } }
+  if(!it.food){ for(const [r,,f] of FOOD_COLOUR){ if(r.test(s)){ it.food=f; break; } } }
+  const sm=s.match(/(\d+(?:\.\d+)?)\s*(?:"|″|”|-?\s?in(?:ch)?(?:es)?\b|mm|cm)/);
+  if(sm){ let v=parseFloat(sm[1]); if(/mm/.test(sm[0])) v/=25.4; else if(/cm/.test(sm[0])) v/=2.54; it.size=Math.round(v*10)/10; }
+  const under=s.match(/(?:under|below|less than|max(?:imum)?|up to)\s*(\d+(?:\.\d+)?)/); if(under){ it.maxSize=parseFloat(under[1]); delete it.size; }
+  const over=s.match(/(?:over|above|more than|at least|min(?:imum)?)\s*(\d+(?:\.\d+)?)/); if(over){ it.minSize=parseFloat(over[1]); delete it.size; }
+  if(/\b(short|small|compact|little|shorter|smaller)\b/.test(s)) it.length="short";
+  if(/\b(long|large|big|longer|bigger)\b/.test(s)) it.length="long";
+  const feats=FEATURE_Q.filter(([r])=>r.test(s)).map(f=>f[1]); if(feats.length) it.features=feats;
+  const b=BRANDS.find(b=>new RegExp('\\b'+b.toLowerCase()+'\\b').test(s)); if(b) it.brand=(b==="Eicker"||b==="E1")?"Eicker Messer":b;
+  const cats=[...new Set(DB.flatMap(p=>p.cats))].filter(c=>c&&c.length>3&&new RegExp('\\b'+c.toLowerCase().split(/[ &]+/)[0]).test(s));
+  if(cats.length) it.cats=cats;
+  const kw=s.replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(w=>w.length>3&&!STOP.has(w));
+  if(kw.length) it.keywords=kw;
+  return it;
+}
+function mergeIntent(base, add){
+  const r={...base};
+  ["types","typeLabel","related","colour","colourWhy","food","brand","length"].forEach(k=>{ if(add[k]) r[k]=add[k]; });
+  if(add.size!=null){ r.size=add.size; delete r.maxSize; delete r.minSize; }
+  if(add.maxSize!=null){ r.maxSize=add.maxSize; delete r.size; }
+  if(add.minSize!=null){ r.minSize=add.minSize; delete r.size; }
+  if(add.features) r.features=[...new Set([...(base.features||[]),...add.features])];
+  if(add.cats) r.cats=[...new Set([...(base.cats||[]),...add.cats])];
+  if(add.keywords) r.keywords=[...new Set([...(base.keywords||[]),...add.keywords])];
+  if(add.length==="short"&&r.length==="long") r.length="short";
+  return r;
+}
+
+/* =====================================================================
+   MATCHING + EXPLANATION
+   ===================================================================== */
+function score(p,it){
+  let sc=0; const hit=[], miss=[];
+  if(it.types){
+    const i=it.types.indexOf(p.type);
+    if(i===0){ sc+=9; hit.push(p.type.toLowerCase()); }
+    else if(i>0){ sc+=7-i; hit.push(p.type.toLowerCase()); }
+    else if(it.related&&it.related.includes(p.type)){ sc+=2; }
+    else sc-=5;
+  }
+  if(it.colour){
+    if(p.colour===it.colour){ sc+=5; hit.push(it.colour.toLowerCase()+" handle ("+it.colourWhy+")"); }
+    else if(p.colour){ sc-=2; miss.push(p.colour.toLowerCase()+" handle rather than "+it.colour.toLowerCase()); }
+    else { sc-=1; miss.push("handle colour not listed"); }
+  }
+  if(p.inches!=null){
+    if(it.size!=null){ const d=Math.abs(p.inches-it.size); sc+=Math.max(-2,4-d*1.5); if(d<=0.6) hit.push(p.inches+'" blade, as requested'); else miss.push(p.inches+'" rather than '+it.size+'"'); }
+    if(it.maxSize!=null){ if(p.inches<=it.maxSize){ sc+=3; hit.push(p.inches+'", within your '+it.maxSize+'" limit'); } else { sc-=4; miss.push(p.inches+'" is over your limit'); } }
+    if(it.minSize!=null){ if(p.inches>=it.minSize){ sc+=3; hit.push(p.inches+'", meets your '+it.minSize+'" minimum'); } else { sc-=4; miss.push(p.inches+'" is under your minimum'); } }
+    if(it.length==="short"){ if(p.inches<=6){ sc+=2.5; hit.push("short "+p.inches+'" blade'); } else if(p.inches>=9) sc-=1.5; }
+    if(it.length==="long"){ if(p.inches>=10){ sc+=2.5; hit.push("long "+p.inches+'" blade'); } else if(p.inches<=6) sc-=1.5; }
+  }
+  (it.features||[]).forEach(f=>{ if(p.features.includes(f)){ sc+=3; hit.push(f.toLowerCase()); } else miss.push("not listed as "+f.toLowerCase()); });
+  if(it.brand){ if((p.brand||'').toLowerCase().includes(it.brand.toLowerCase().split(' ')[0])){ sc+=4; hit.push(p.brand); } else { sc-=3; miss.push(p.brand?("made by "+p.brand):"brand not listed"); } }
+  if(it.cats){ const c=it.cats.filter(c=>p.cats.includes(c)); if(c.length){ sc+=2*c.length; hit.push("listed under "+c.join(", ")); } }
+  let kwHits=0; (it.keywords||[]).forEach(w=>{ if(p.name.toLowerCase().includes(w)) kwHits+=1.2; else if(p.hay.includes(w)) kwHits+=0.4; });
+  sc+=Math.min(kwHits,4);
+  return {p,sc,hit:[...new Set(hit)],miss:[...new Set(miss)]};
+}
+function rank(it){
+  return DB.map(p=>score(p,it)).filter(x=>x.sc>=3).sort((a,b)=>b.sc-a.sc || (a.p.placeholder-b.p.placeholder) || a.p.name.localeCompare(b.p.name));
+}
+function pickResults(ranked){
+  const picks=[], alts=[];
+  for(const r of ranked){ if(picks.length>=4) break; if(picks.length && r.sc < picks[0].sc*0.6) break; picks.push(r); }
+  const sig=r=>[r.p.type,r.p.colour,r.p.inches,r.p.brand].join('|');
+  const used=new Set(picks.map(sig)); const pickIds=new Set(picks.map(r=>r.p.id));
+  for(const r of ranked){ if(alts.length>=4) break; if(pickIds.has(r.p.id)) continue; const s=sig(r); if(used.has(s)) continue; used.add(s); alts.push(r); }
+  return {picks,alts};
+}
+function fitLabel(r,top){ const ratio=r.sc/top; return ratio>.92?"Best match":ratio>.75?"Strong match":"Good match"; }
+function altReason(r,top){
+  const t=top.p, p=r.p, d=[];
+  if(p.type!==t.type) d.push("a "+p.type.toLowerCase()+" instead");
+  if(p.inches&&t.inches&&p.inches!==t.inches) d.push(p.inches<t.inches?"shorter at "+p.inches+'"':"longer at "+p.inches+'"');
+  if(p.colour&&p.colour!==t.colour) d.push(p.colour.toLowerCase()+" handle for "+HACCP[p.colour].use.toLowerCase());
+  if(p.brand&&p.brand!==t.brand) d.push("from "+p.brand);
+  p.features.filter(f=>!t.features.includes(f)).slice(0,2).forEach(f=>d.push(f.toLowerCase()));
+  return d.length?("Compared with the top pick: "+d.join(", ")+"."):"A close variant of the top pick.";
+}
+function summarise(it,n){
+  const parts=[];
+  if(it.typeLabel){ const t=it.typeLabel.toLowerCase().replace(/^utility knife$/,"knife"); parts.push((/scissors$/.test(t)?"":/^[aeiou]/.test(t)?"an ":"a ")+t); } else parts.push("a product");
+  if(it.food) parts.push("for "+it.food);
+  if(it.size!=null) parts.push("around "+it.size+'"');
+  if(it.maxSize!=null) parts.push("no longer than "+it.maxSize+'"');
+  if(it.minSize!=null) parts.push("at least "+it.minSize+'"');
+  if(it.length) parts.push(it.length==="short"?"with a short blade":"with a long blade");
+  if(it.colour) parts.push("with a "+it.colour.toLowerCase()+" handle");
+  if(it.features) parts.push("with these features: "+it.features.map(f=>f.toLowerCase()).join(", "));
+  if(it.brand) parts.push("from "+it.brand);
+  return n?("You're looking for "+parts.join(" ")+". We found "+n+" matching product"+(n>1?"s":"")+" in the catalogue."):("We couldn't find "+parts.join(" ")+" in the catalogue.");
+}
+function followups(it,picks){
+  const out=[]; if(!picks.length) return out;
+  const top=picks[0].p; const same=DB.filter(p=>p.type===top.type);
+  if(top.inches){
+    const shorter=same.filter(p=>p.inches&&p.inches<top.inches).length, longer=same.filter(p=>p.inches&&p.inches>top.inches).length;
+    if(shorter) out.push({label:"Shorter blade",apply:{maxSize:Math.round((top.inches-0.5)*10)/10,length:null}});
+    if(longer) out.push({label:"Longer blade",apply:{minSize:Math.round((top.inches+0.5)*10)/10,length:null}});
+  }
+  const cols=[...new Set(same.map(p=>p.colour).filter(Boolean))].filter(c=>c!==it.colour).slice(0,3);
+  cols.forEach(c=>out.push({label:"In "+c.toLowerCase(),apply:{colour:c,colourWhy:"you asked for "+c.toLowerCase()}}));
+  const brands=[...new Set(same.map(p=>p.brand).filter(Boolean))].filter(b=>b!==it.brand).slice(0,2);
+  brands.forEach(b=>out.push({label:"Only "+b,apply:{brand:b}}));
+  if(!/steel|scissor|implement/i.test(top.type) && DB.some(p=>p.type==="Sharpening steel") && it.typeLabel!=="Sharpening steel")
+    out.push({label:"A matching sharpening steel",apply:{types:["Sharpening steel"],typeLabel:"Sharpening steel",related:[],size:null,maxSize:null,minSize:null,length:null,keywords:[]},replace:true});
+  return out.slice(0,6);
+}
+
+/* =====================================================================
+   UI
+   ===================================================================== */
+const out=document.getElementById('out'), q=document.getElementById('q');
+const state={intent:{},history:[]};
+const EXAMPLES=["Boning raw chicken all day, short blade, yellow colour code","Breaking down beef carcasses, long curved blade with a safety handle",
+  "Filleting fish in a hotel kitchen","Keep our butchers' knives sharp, white handle","Left-handed scissors for the office","Bread knife for a bakery counter"];
+const ex=document.getElementById('examples');
+EXAMPLES.forEach(t=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=t;b.onclick=()=>{q.value=t;ask(t,true)};ex.appendChild(b)});
+document.getElementById('key').innerHTML=Object.entries(HACCP).map(([k,v])=>'<div><span class="sw" style="background:'+v.c+'"></span><b>'+k+'</b><span class="muted">'+v.use+'</span></div>').join('');
+document.getElementById('askForm').addEventListener('submit',e=>{e.preventDefault();const t=q.value.trim(); if(t) ask(t,true);});
+q.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();document.getElementById('askForm').requestSubmit();}});
+
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function renderStats(){
+  const cc={}; DB.forEach(p=>p.cats.forEach(c=>cc[c]=(cc[c]||0)+1));
+  const brands=[...new Set(DB.map(p=>p.brand).filter(Boolean))];
+  const src={live:"Live from source-shark.com",cache:"Saved copy",snapshot:"Built-in sample"}[SOURCE];
+  document.getElementById('stats').innerHTML=
+    '<div class="stat"><span>Source</span><b>'+src+'</b></div>'+
+    '<div class="stat"><span>Products</span><b>'+DB.length+'</b></div>'+
+    (LOADED_AT?'<div class="stat"><span>Updated</span><b>'+fmtTime(LOADED_AT)+'</b></div>':'')+
+    (brands.length?'<div class="stat"><span>Brands</span><b>'+esc(brands.slice(0,5).join(', '))+(brands.length>5?' +'+(brands.length-5):'')+'</b></div>':'')+
+    Object.entries(cc).sort((a,b)=>b[1]-a[1]).slice(0,7).map(([c,n])=>'<div class="stat"><span>'+esc(c)+'</span><b>'+n+'</b></div>').join('');
+}
+function renderWelcome(){
+  const cc={}; DB.forEach(p=>p.cats.forEach(c=>cc[c]=(cc[c]||0)+1));
+  out.innerHTML='<div class="empty"><h2>What can you ask?</h2><p class="muted" style="margin:6px 0 0">Plain language works. Mention any of these and the finder will use it:</p><ul>'+
+    '<li>The task: boning, breaking carcasses, filleting fish, slicing bread, trimming fat, office cutting</li>'+
+    '<li>The food, so it can match your HACCP colour code</li>'+
+    '<li>Size ("under 6 inches", "250mm"), blade shape, steel type, brand, left-handed use or anti-bacterial handles</li></ul>'+
+    '<h3 style="margin-top:22px">Or start from a category</h3><div class="cats">'+
+    Object.entries(cc).sort((a,b)=>b[1]-a[1]).map(([c,n])=>'<button type="button" data-cat="'+esc(c)+'">'+esc(c)+'<span>'+n+'</span></button>').join('')+'</div></div>';
+  out.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{ state.history=["Browse "+b.dataset.cat]; state.intent={cats:[b.dataset.cat]}; runIntent(); });
+}
+
+function ask(text,fresh){
+  if(!DB.length) return;
+  if(fresh){ state.intent={}; state.history=[]; }
+  state.intent=mergeIntent(state.intent, parseQuery(text));
+  state.history.push(text);
+  runIntent(true);
+}
+function runIntent(scroll){
+  if(!state.history.length) return renderWelcome();
+  const it=state.intent;
+  const ranked=rank(it); const {picks,alts}=pickResults(ranked);
+  render(it,picks,alts);
+  if(scroll) out.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+}
+
+function art(p){
+  const hc=p.colour?HACCP[p.colour].c:"var(--steel)";
+  const st=p.colour==="White"?'stroke="#9aa6b0" stroke-width="1.5"':'';
+  const g='<defs><linearGradient id="g'+p.id.replace(/\W/g,'')+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E9EEF2"/><stop offset=".55" stop-color="#B8C3CC"/><stop offset="1" stop-color="#8E9BA6"/></linearGradient></defs>';
+  const bl='fill="url(#g'+p.id.replace(/\W/g,'')+')"';
+  const handle='<rect x="18" y="32" width="62" height="16" rx="7" fill="'+hc+'" '+st+'/>';
+  let inner;
+  if(/scissor/i.test(p.type)) inner='<ellipse cx="38" cy="26" rx="20" ry="12" fill="none" stroke="'+hc+'" stroke-width="7"/><ellipse cx="38" cy="56" rx="20" ry="12" fill="none" stroke="'+hc+'" stroke-width="7"/><path d="M60 34 L210 46 L60 40Z" '+bl+'/><path d="M60 48 L210 44 L60 42Z" '+bl+'/>';
+  else if(p.type==="Sharpening steel") inner=handle+'<rect x="80" y="28" width="8" height="24" rx="2" fill="#56636e"/><rect x="88" y="36" width="122" height="8" rx="4" '+bl+'/>';
+  else if(p.type==="Cleaver") inner=handle+'<path d="M80 22 L186 22 L186 52 L80 50Z" '+bl+'/>';
+  else if(/Butchers|Breaking|Cimeter|Broad/.test(p.type)) inner=handle+'<path d="M80 34 Q160 26 206 28 Q172 50 80 48Z" '+bl+'/>';
+  else if(/Chef|Santoku|Bread|Slicing|Sashimi/.test(p.type)) inner=handle+'<path d="M80 30 L204 44 Q150 54 80 50Z" '+bl+'/>';
+  else inner=handle+'<path d="M80 37 L190 41 Q150 48 80 47Z" '+bl+'/>';
+  return '<svg viewBox="0 0 220 80" aria-hidden="true">'+g+inner+'</svg>';
+}
+function media(p){
+  if(p.placeholder) return art(p);
+  return '<img loading="lazy" src="'+esc(p.image)+'" alt="'+esc(p.name)+'" onerror="this.outerHTML=this.dataset.fb" data-fb="'+esc(art(p))+'">';
+}
+
+function render(it,picks,alts){
+  const top=picks[0];
+  const chips=[];
+  if(it.typeLabel) chips.push(["types","Product",it.typeLabel]);
+  if(it.food) chips.push(["food","Food",it.food]);
+  if(it.colour) chips.push(["colour","Colour",it.colour]);
+  if(it.size!=null) chips.push(["size","Size",it.size+'"']);
+  if(it.maxSize!=null) chips.push(["maxSize","Max size",it.maxSize+'"']);
+  if(it.minSize!=null) chips.push(["minSize","Min size",it.minSize+'"']);
+  if(it.length) chips.push(["length","Length",it.length]);
+  (it.features||[]).forEach(f=>chips.push(["feature:"+f,"Feature",f]));
+  if(it.brand) chips.push(["brand","Brand",it.brand]);
+  (it.cats||[]).forEach(c=>chips.push(["cat:"+c,"Category",c]));
+  let h='<div class="understood"><p><b>What we understood.</b> '+esc(summarise(it,picks.length+alts.length))+'</p>';
+  if(chips.length) h+='<div class="needs">'+chips.map(([k,l,v])=>'<span class="need"><b>'+l+'</b>'+esc(v)+'<button type="button" data-rm="'+esc(k)+'" aria-label="Remove '+esc(l)+'">×</button></span>').join('')+'</div>';
+  h+='<p class="muted" style="font-size:13px;margin:12px 0 0">Searched '+DB.length+' products '+({live:"live from source-shark.com",cache:"from the saved copy",snapshot:"in the built-in sample"}[SOURCE])+'. Remove any detail above to widen the search.</p></div>';
+  if(picks.length){
+    h+='<div class="section-head"><h2>Recommended for you</h2><span class="muted" style="font-size:14px">Tick up to 3 to compare</span></div><div class="results">';
+    picks.forEach((r,i)=>h+=card(r,fitLabel(r,top.sc),i===0,false,top));
+    h+='</div>';
+  } else {
+    h+='<div class="empty"><h2>No close match yet</h2><p class="muted">Try removing a detail above, or describe the task differently. Our team also sources beyond the online range: <a href="https://source-shark.com/contact/" target="_blank" rel="noopener">send an enquiry</a> with what you need.</p></div>';
+  }
+  if(alts.length){
+    h+='<div class="section-head" style="margin-top:28px"><h2>Alternatives worth comparing</h2></div><div class="results">';
+    alts.forEach(r=>h+=card(r,"Alternative",false,true,top));
+    h+='</div>';
+  }
+  const fu=followups(it,picks);
+  h+='<div class="section-head" style="margin-top:30px"><h2>Refine the results</h2></div>';
+  if(fu.length) h+='<div class="refine">'+fu.map((f,i)=>'<button type="button" class="chip" data-fu="'+i+'">'+esc(f.label)+'</button>').join('')+'</div>';
+  h+='<form class="refine-box" id="refForm"><input id="refQ" placeholder="Add a detail, e.g. under 6 inches, anti-bacterial, Arcos" aria-label="Refine the results"><button class="btn btn-primary" type="submit">Refine</button></form>';
+  h+='<p class="muted" style="font-size:13px;margin-top:10px">Your request: “'+esc(state.history[0])+'”'+(state.history.length>1?' plus '+(state.history.length-1)+' refinement'+(state.history.length>2?'s':''):'')+'. <a href="#" id="newSearch">Start a new search</a></p>';
+  out.innerHTML=h;
+  out.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ removeIntent(b.dataset.rm); runIntent(); });
+  out.querySelectorAll('[data-fu]').forEach(b=>b.onclick=()=>{ const f=fu[+b.dataset.fu]; applyFollowup(f); state.history.push(f.label); runIntent(); });
+  document.getElementById('refForm').onsubmit=e=>{e.preventDefault();const v=document.getElementById('refQ').value.trim(); if(v) ask(v,false);};
+  document.getElementById('newSearch').onclick=e=>{e.preventDefault();state.intent={};state.history=[];q.value='';renderWelcome();q.focus();window.scrollTo({top:0});};
+  out.querySelectorAll('input[data-cmp]').forEach(cb=>{cb.checked=cmp.has(cb.dataset.cmp);cb.onchange=()=>toggleCmp(cb.dataset.cmp,cb)});
+}
+function removeIntent(k){
+  const it=state.intent;
+  if(k==="types"){ delete it.types; delete it.typeLabel; delete it.related; }
+  else if(k==="colour"){ delete it.colour; delete it.colourWhy; }
+  else if(k.startsWith("feature:")) it.features=(it.features||[]).filter(f=>f!==k.slice(8));
+  else if(k.startsWith("cat:")) it.cats=(it.cats||[]).filter(c=>c!==k.slice(4));
+  else delete it[k];
+  if(k==="food"||k==="types") it.keywords=[];
+}
+function applyFollowup(f){
+  if(f.replace){ state.intent={...state.intent}; }
+  Object.entries(f.apply).forEach(([k,v])=>{ if(v===null) delete state.intent[k]; else state.intent[k]=v; });
+  if(f.apply.maxSize!=null){ delete state.intent.size; delete state.intent.minSize; }
+  if(f.apply.minSize!=null){ delete state.intent.size; delete state.intent.maxSize; }
+}
+function card(r,fit,top,alt,best){
+  const p=r.p;
+  const sw=p.colour?'<span><i class="sw" style="background:'+HACCP[p.colour].c+'"></i>'+p.colour+' handle, '+HACCP[p.colour].use.toLowerCase()+'</span>':'';
+  let why;
+  if(alt) why=esc(altReason(r,best));
+  else {
+    why=r.hit.length?'Why it fits: '+esc(r.hit.join(', '))+'.':'Closest available match for your request.';
+    if(r.miss.length) why+=' <span class="x">Note: '+esc(r.miss.slice(0,2).join('; '))+'.</span>';
+  }
+  return '<article class="prod'+(top?' top':'')+'"><div class="art"><span class="fit'+(alt?' alt':'')+'">'+esc(fit)+'</span>'+media(p)+'</div><div class="body">'
+   +'<h3>'+esc(p.name)+'</h3><p class="why">'+why+'</p>'
+   +'<div class="specs"><span>'+esc(p.type)+'</span>'+(p.inches?'<span>'+p.inches+'" / '+Math.round(p.inches*25.4)+'mm</span>':'')+sw+(p.brand?'<span>'+esc(p.brand)+'</span>':'')+(p.sku?'<span>SKU '+esc(p.sku)+'</span>':'')+'</div>'
+   +'<div class="row-actions"><span class="verified"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2"/></svg>'+esc(p.cats.join(', ')||'Catalogue')+'</span>'
+   +'<label class="cmp"><input type="checkbox" data-cmp="'+esc(p.id)+'">Compare</label>'
+   +'<a class="view" href="'+esc(p.url)+'" target="_blank" rel="noopener">View product</a>'
+   +'<a class="view" href="'+SITE+'/contact/" target="_blank" rel="noopener">Enquire</a></div>'
+   +'</div></article>';
+}
+
+/* Compare */
+const cmp=new Map(), drawer=document.getElementById('drawer'), dlg=document.getElementById('dlg');
+function toggleCmp(id,cb){
+  if(cb.checked){ if(cmp.size>=3){cb.checked=false;return;} cmp.set(id,BYID[id]); } else cmp.delete(id);
+  out.querySelectorAll('input[data-cmp]').forEach(x=>{ if(x.dataset.cmp===id) x.checked=cb.checked; });
+  syncDrawer();
+}
+function syncDrawer(){
+  drawer.classList.toggle('show',cmp.size>0);
+  document.getElementById('cmpNames').textContent=cmp.size+' of 3 selected: '+[...cmp.values()].map(p=>p.name).join('; ');
+  document.getElementById('cmpOpen').disabled=cmp.size<2;
+}
+document.getElementById('cmpClear').onclick=()=>{cmp.clear();out.querySelectorAll('input[data-cmp]').forEach(x=>x.checked=false);syncDrawer();};
+document.getElementById('cmpOpen').onclick=()=>{
+  const ps=[...cmp.values()];
+  const rows=[["Type",p=>p.type],["Blade length",p=>p.inches?p.inches+'" / '+Math.round(p.inches*25.4)+'mm':'Not stated'],["Handle colour",p=>p.colour||'Not stated'],
+    ["HACCP use",p=>p.colour?HACCP[p.colour].use:'Not colour-coded'],["Brand",p=>p.brand||'Not stated'],["SKU",p=>p.sku||'Not stated'],
+    ["Features",p=>p.features.join(', ')||'None listed'],["Categories",p=>p.cats.join(', ')],["Description",p=>p.desc?p.desc.slice(0,180)+(p.desc.length>180?'…':''):'None']];
+  let t='<table><thead><tr><th></th>'+ps.map(p=>'<th>'+media(p)+esc(p.name)+'</th>').join('')+'</tr></thead><tbody>';
+  rows.forEach(([k,f])=>{const v=ps.map(f);const d=new Set(v).size>1;t+='<tr><th>'+k+'</th>'+v.map(x=>'<td'+(d?' class="diff"':'')+'>'+esc(x)+'</td>').join('')+'</tr>';});
+  t+='<tr><th>Links</th>'+ps.map(p=>'<td><a href="'+esc(p.url)+'" target="_blank" rel="noopener">View product</a></td>').join('')+'</tr></tbody></table><p class="muted" style="font-size:13px">Shaded rows are where the products differ.</p>';
+  document.getElementById('cmpTable').innerHTML=t; dlg.showModal();
+};
+document.getElementById('dlgClose').onclick=()=>dlg.close();
+dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.close();});
+
+/* Start: show saved copy instantly (if any), then fetch live */
+try{ const c=JSON.parse(localStorage.getItem(CACHE_KEY)||"null"); if(c&&c.products&&c.products.length){ setCatalogue(c.products,"cache",new Date(c.ts)); } }catch(e){}
+loadCatalogue();
+</script>
+</body>
+</html>
